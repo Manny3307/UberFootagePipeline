@@ -80,17 +80,18 @@ def get_number_days(path):
     files_last_week = []
     for f in files:
         complete_path = f"{path}/{f}"
-        if(os.path.isfile(complete_path)):
-            st_time = os.stat(complete_path).st_ctime
+        if(os.path.isdir(complete_path)):
+            st_time = os.path.getctime(complete_path)
             dt = datetime.fromtimestamp(st_time)
             created_date = dt.date()
             date_difference = today - created_date
-            if(date_difference.days < 7):
+
+            if(date_difference.days <= 7):
                 files_last_week.append(f)
 
     return files_last_week
 
-test = get_number_days("/home/manny/Fiona")
+test = get_number_days("/home/manny/Footage")
 print(test)
 
 ftps.close()
