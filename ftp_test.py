@@ -86,7 +86,7 @@ def get_number_days(path):
             created_date = dt.date()
             date_difference = today - created_date
 
-            if(date_difference.days <= 7):
+            if(date_difference.days <= 1):
                 files_last_week.append(f)
 
     return files_last_week
