@@ -49,8 +49,17 @@ RUN pip install --upgrade "pip==20.2.4" && \
     pip install apache-airflow-providers-slack==3.0.0 && \
     pip install apache-airflow-providers-http==1.1.1
 
+#Install tqdm used for showing progress bar in FTP module
+RUN apt-get update -y
+RUN apt-get install -y python-tqdm
+RUN pip install tqdm python-dotenv
+
 # Copy the airflow.cfg file (config)
 #COPY ./config/airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
+
+# Create the folder to store the batch files of the Upload Process
+RUN mkdir /upload_batch
+RUN chmod 777 /upload_batch
 
 # Set the owner of the files in AIRFLOW_HOME to the user airflow
 RUN chown -R airflow: ${AIRFLOW_HOME}
@@ -66,6 +75,9 @@ USER airflow
 
 # Create the folder dags inside $AIRFLOW_HOME
 RUN mkdir -p ${AIRFLOW_HOME}/dags
+
+ENV PATH="${PATH}:/opt/airflow/dags"
+
 
 # Expose ports (just to indicate that this container needs to map port)
 EXPOSE 8080

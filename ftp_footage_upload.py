@@ -22,7 +22,6 @@ for folder_name_counter in folder_dict:
 pick_counter = input("Please enter the number in front of the folder to upload: ")
 selected_folder = obj_ftp.get_folder_name(folder_dict, pick_counter)
 
-ftps = FTP_TLS()
 obj_ftp.connect_ftp_server()
 obj_ftp.FTP_create_folder_structure(selected_folder)
 

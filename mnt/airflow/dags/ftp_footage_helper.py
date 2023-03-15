@@ -10,13 +10,13 @@ import numpy as np
 import random
 import string
 
-upload_queue_dataset = pd.DataFrame()
+#upload_queue_dataset = pd.DataFrame()
 ftps = FTP_TLS()
 
 class ftp_helpers:
     
     def __init__(self):
-        global folder_path, ftps, filesList, nameList, filesizeList, upload_queue_dataset
+        global folder_path, ftps, filesList, nameList, filesizeList #upload_queue_dataset
         dotenv_path = Path('/opt/airflow/dags/.env')
         load_dotenv(dotenv_path=dotenv_path)
         folder_path = os.getenv("FTP_folder_path")
@@ -62,12 +62,12 @@ class ftp_helpers:
     def connect_ftp_server(self):
         global ftps
         try:
-            print("Attempting  to login to Thecus NAS")
+            print(f"Attempting  to login to {os.getenv('FTP_server_name')}")
             #ftps.context.set_ciphers('DEFAULT@SECLEVEL=1')
             ftps = ftplib.FTP(os.getenv("FTP_server"), os.getenv("FTP_server_login"), os.getenv("FTP_server_password"))
             #ftps.connect(os.getenv("FTP_server"),int(os.getenv("FTP_server_port")))
             #ftps.login(user = os.getenv("FTP_server_login"), passwd = os.getenv("FTP_server_password"))
-            print("Successfully logged in to Thecus NAS")
+            print(f"Successfully logged in to {os.getenv('FTP_server_name')}")
         except Exception as e: 
             print(e)
             print("Login Failed!!!!")
@@ -146,8 +146,9 @@ class ftp_helpers:
         return subdir[len(subdir) - 1]
 
     def generate_upload_queue(self, folder_list):
+        #global upload_queue_dataset
         for folder_name in folder_list:
-            upload_path = os.path.abspath(folder_name)
+            upload_path = f"{os.getenv('FTP_folder_path')}/{folder_name}" 
             for path, subdirs, files in os.walk(upload_path):
                 for name in files:
                     filesList.append(path)
@@ -155,9 +156,10 @@ class ftp_helpers:
                     file_stats = os.stat(os.path.join(path, name))
                     filesizeList.append(f"{round(file_stats.st_size / (1024 * 1024),2)} MB")
 
-        upload_queue_dataset = pd.DataFrame({'file_path': filesList,  'file_name':nameList, 'filesize': filesizeList })
+        '''upload_queue_dataset = pd.DataFrame({'file_path': filesList,  'file_name':nameList, 'filesize': filesizeList })
         upload_queue_dataset["front_or_rear_folder"] = upload_queue_dataset["file_path"].apply(lambda x: self.getsubdir(x))
-        upload_queue_dataset["file_uploaded"] = False
+        upload_queue_dataset["file_uploaded"] = False'''
+        
 
     def get_random_string(self, length):
         # choose from all lowercase letter
@@ -184,14 +186,14 @@ class ftp_helpers:
                     if(footage_front_file not in ftps.nlst()):
                         with tqdm(unit = 'blocks', unit_scale = True, leave = False, miniters = 1, desc = f'Uploading {selected_folder} {filename_without_path}......', total = filesize) as tqdm_instance:
                             ftps.storbinary(f'STOR {filename_without_path}', TheFile , 2048, callback = lambda sent: tqdm_instance.update(len(sent)))
-                            upload_queue_dataset["file_uploaded"] = np.where(upload_queue_dataset["file_name"] == filename, True, False)
+                            #upload_queue_dataset["file_uploaded"] = np.where(upload_queue_dataset["file_name"] == filename, True, False)
                             file_counter += 1
                     else:
                         file_counter += 1
 
         except Exception as e:
-            upload_queue_dataset["file_uploaded"] = np.where(upload_queue_dataset["file_name"] == filename, "Error", False)
-            upload_queue_dataset.to_csv(f"file_listing_{batch_id}.csv")
+            #upload_queue_dataset["file_uploaded"] = np.where(upload_queue_dataset["file_name"] == filename, "Error", False)
+            #upload_queue_dataset.to_csv(f"{os.getenv('FTP_batch_path')}/file_listing_{batch_id}_{date.today()}.csv")
             print(e)
 
 
@@ -221,14 +223,14 @@ class ftp_helpers:
                     if(footage_front_file not in ftps.nlst()):
                         with tqdm(unit = 'blocks', unit_scale = True, leave = False, miniters = 1, desc = f'Uploading {selected_folder} {filename_without_path}......', total = filesize) as tqdm_instance:
                             ftps.storbinary(f'STOR {filename_without_path}', TheFile , 2048, callback = lambda sent: tqdm_instance.update(len(sent)))
-                            upload_queue_dataset["file_uploaded"] = np.where(upload_queue_dataset["file_name"] == filename, True, False)
+                            #upload_queue_dataset["file_uploaded"] = np.where(upload_queue_dataset["file_name"] == filename, True, False)
                             file_counter += 1
                     else:
                         file_counter += 1
 
         except Exception as e:
-            upload_queue_dataset["file_uploaded"] = np.where(upload_queue_dataset["file_name"] == filename, "Error", False)
-            upload_queue_dataset.to_csv(f"file_listing_{batch_id}.csv")
+            #upload_queue_dataset["file_uploaded"] = np.where(upload_queue_dataset["file_name"] == filename, "Error", False)
+            #upload_queue_dataset.to_csv(f"{os.getenv('FTP_batch_path')}/file_listing_{batch_id}_{date.today()}.csv")
             print(e)
 
         rear_files = []
@@ -254,7 +256,7 @@ class ftp_helpers:
 
         print(f"All {Total_Count} files for {selected_folder} uploaded successfully!!!")
         print("Writing the Batch File.....")
-        upload_queue_dataset.to_csv(f"file_listing_{batch_id}.csv")
+        #upload_queue_dataset.to_csv(f"{os.getenv('FTP_batch_path')}/file_listing_{batch_id}_{date.today()}.csv")
 
     def get_number_days(self, path):
         files = os.listdir(path)
@@ -289,4 +291,4 @@ class ftp_helpers:
         global ftps
         ftps.close()
         ftps = None
-        print("Successfully logged out of Thecus NAS")
+        print(f"Successfully logged out of {os.getenv('FTP_server_name')}")

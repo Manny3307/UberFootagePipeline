@@ -260,6 +260,8 @@ services:
     volumes:
       - ./mnt/airflow/airflow.cfg:/opt/airflow/airflow.cfg
       - ./mnt/airflow/dags:/opt/airflow/dags
+      - /home/manny/Footage:/Footage
+      - /home/manny/upload_batch:/upload_batch
     ports:
       - 8081:8080
     healthcheck:
@@ -267,7 +269,6 @@ services:
       timeout: 45s
       interval: 10s
       retries: 10
-
 ######################################################
 # NETWORK
 ######################################################
