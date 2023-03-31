@@ -28,7 +28,7 @@ html_str = ""
 
 def upload_footage():
     global html_str
-    html_str = f"<h3>Following folders have been uploaded uploaded to {os.getenv('FTP_server_name')}.</h3> </br><ol>"    
+    html_str = f"<h3>Following folders have been uploaded to {os.getenv('FTP_server_name')}.</h3> </br><ol>"    
     obj_ftp = ftp_helpers()
     folder_path = os.getenv("FTP_folder_path")
     obj_ftp.connect_ftp_server()
