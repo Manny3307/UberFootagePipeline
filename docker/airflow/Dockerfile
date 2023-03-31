@@ -50,6 +50,7 @@ RUN pip install --upgrade "pip==20.2.4" && \
     pip install apache-airflow-providers-http==1.1.1
 
 #Install tqdm used for showing progress bar in FTP module
+RUN apt-get install nano -y
 RUN apt-get update -y
 RUN apt-get install -y python-tqdm
 RUN pip install tqdm python-dotenv

@@ -21,10 +21,14 @@ import csv
 import requests
 import json
 
-def upload_footage():
-    dotenv_path = Path('/opt/airflow/dags/.env')
-    load_dotenv(dotenv_path=dotenv_path)
 
+dotenv_path = Path('/opt/airflow/dags/.env')
+load_dotenv(dotenv_path=dotenv_path)
+html_str = ""
+
+def upload_footage():
+    global html_str
+    html_str = f"<h3>Following folders have been uploaded uploaded to {os.getenv('FTP_server_name')}.</h3> </br><ol>"    
     obj_ftp = ftp_helpers()
     folder_path = os.getenv("FTP_folder_path")
     obj_ftp.connect_ftp_server()
@@ -42,10 +46,28 @@ def upload_footage():
             file_count_R = obj_ftp.count_files(footage_rear)
             Total_Count = file_count_F + file_count_R
             obj_ftp.FTP_upload_files(selected_folder, footage_front, footage_rear, Total_Count)
-        
+            html_str += f"<li>{selected_folder}</li>"
+    
+    html_str += "</ol>" 
+    if(os.path.exists('/opt/airflow/dags/html_content.txt')):
+        os.remove('/opt/airflow/dags/html_content.txt')
 
+    with open('/opt/airflow/dags/html_content.txt', 'w') as file_content:
+        file_content.write(html_str)
+        
     obj_ftp.FTP_close_connection()
     
+def create_html_content(**kwargs):
+    with open('/opt/airflow/dags/html_content.txt', 'r') as file_content:
+        email_content = file_content.read()
+
+    send_email = EmailOperator(
+        task_id="send_email",
+        to="mannyelaine26@gmail.com",
+        subject="Footage Status",
+        html_content=email_content
+    )
+    send_email.execute(context=kwargs)
 
 default_args = {
             "owner": "Airflow",
@@ -69,4 +91,10 @@ with DAG(dag_id="ftp_footage_upload", schedule_interval="@daily", default_args=d
             python_callable=upload_footage
     )
     
-    uploading_footage
+    send_email = PythonOperator(
+        task_id="send_email",
+        python_callable=create_html_content,
+        provide_context=True
+    )
+
+    uploading_footage >> send_email
