@@ -34,10 +34,12 @@ def upload_footage():
     obj_ftp.connect_ftp_server()
     folders_last_week = obj_ftp.get_number_days(folder_path)
     obj_ftp.generate_upload_queue(folders_last_week)
-
+    folder_counter = 0
     for folder_name in folders_last_week:
         selected_folder = folder_name
         if(obj_ftp.chk_folder_present(selected_folder) == False):
+            html_str += f"<li>{selected_folder}</li>"
+            folder_counter += 1
             obj_ftp.FTP_create_folder_structure(selected_folder)
             complete_path = f"{folder_path}/{selected_folder}"
             footage_front = f"{complete_path}/F"
@@ -46,12 +48,16 @@ def upload_footage():
             file_count_R = obj_ftp.count_files(footage_rear)
             Total_Count = file_count_F + file_count_R
             obj_ftp.FTP_upload_files(selected_folder, footage_front, footage_rear, Total_Count)
-            html_str += f"<li>{selected_folder}</li>"
+            
     
     html_str += "</ol>" 
     if(os.path.exists('/opt/airflow/dags/html_content.txt')):
         os.remove('/opt/airflow/dags/html_content.txt')
-
+    
+    if(folder_counter == 0):
+        html_str = "<h3>No folder(s) present to upload today.</h3>"
+        
+    
     with open('/opt/airflow/dags/html_content.txt', 'w') as file_content:
         file_content.write(html_str)
         

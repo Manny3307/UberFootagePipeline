@@ -62,12 +62,12 @@ class ftp_helpers:
     def connect_ftp_server(self):
         global ftps
         try:
-            print("Attempting  to login to Thecus NAS")
+            print(f"Attempting  to login to {os.getenv('FTP_server_name')}")
             #ftps.context.set_ciphers('DEFAULT@SECLEVEL=1')
             ftps = ftplib.FTP(os.getenv("FTP_server"), os.getenv("FTP_server_login"), os.getenv("FTP_server_password"))
             #ftps.connect(os.getenv("FTP_server"),int(os.getenv("FTP_server_port")))
             #ftps.login(user = os.getenv("FTP_server_login"), passwd = os.getenv("FTP_server_password"))
-            print("Successfully logged in to Thecus NAS")
+            print(f"Successfully logged in to {os.getenv('FTP_server_name')}")
         except Exception as e: 
             print(e)
             print("Login Failed!!!!")
